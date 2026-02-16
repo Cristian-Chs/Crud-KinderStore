@@ -39,11 +39,14 @@ git push -u origin main
 ### 3️⃣ Crear Base de Datos Postgres
 
 1. En tu proyecto de Vercel, ve a la pestaña **"Storage"**
-2. Clic en **"Create Database"**
-3. Selecciona **"Postgres"**
-4. Nombre: `clientes-db` (o el que prefieras)
-5. Región: Selecciona la más cercana (ej: Washington, D.C. - US East)
-6. Clic en **"Create"**
+2. **⚠️ Cambio Reciente**: Si no ves "Vercel Postgres", busca en la lista de "Marketplace Database Providers"
+3. Selecciona **"Neon (Serverless Postgres)"** (es la tecnología que usa Vercel por defecto)
+4. Clic en **"Create"** o **"Add Integration"**
+5. Sigue los pasos:
+   - Selecciona tu cuenta/equipo
+   - Dale un nombre a la base de datos (ej: `clientes-db`)
+   - Selecciona la región más cercana (ej: US East)
+   - Clic en **"Create Database"**
 
 ### 4️⃣ Conectar la Base de Datos
 
