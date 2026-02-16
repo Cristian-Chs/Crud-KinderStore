@@ -91,6 +91,15 @@ def debug_db():
         'database_status': db_status
     })
 
+# Endpoint para inicializar la BD manualmente
+@app.route('/init-db')
+def manual_init_db():
+    try:
+        init_db()
+        return jsonify({"message": "✅ Base de datos inicializada correctamente", "status": "ok"})
+    except Exception as e:
+        return jsonify({"error": f"❌ Error al inicializar: {str(e)}", "status": "error"}), 500
+
 # API: Obtener todos los clientes
 @app.route('/api/clientes', methods=['GET'])
 def get_clientes():
