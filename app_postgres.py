@@ -12,10 +12,14 @@ app = Flask(__name__)
 CORS(app)
 
 # Configuración
-UPLOAD_FOLDER = 'uploads'
+# En Vercel solo /tmp es escribible
+UPLOAD_FOLDER = '/tmp'
 
 if not os.path.exists(UPLOAD_FOLDER):
-    os.makedirs(UPLOAD_FOLDER)
+    try:
+        os.makedirs(UPLOAD_FOLDER)
+    except Exception as e:
+        print(f"Nota: No se pudo crear {UPLOAD_FOLDER} (puede que ya exista): {e}")
 
 # Obtener URL de base de datos desde variables de entorno
 DATABASE_URL = os.environ.get('POSTGRES_URL') or os.environ.get('DATABASE_URL')
