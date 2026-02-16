@@ -13,7 +13,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "app_postgres.py"
+      "dest": "/app_postgres.py"
     }
   ]
 }
