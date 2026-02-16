@@ -77,12 +77,13 @@
                 <th>Teléfono</th>
                 <th>Fecha de Registro</th>
                 <th>Artículo</th>
+                <th>Precio</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody id="clientesBody">
               <tr class="loading-row">
-                <td colspan="6">
+                <td colspan="7">
                   <div class="loading-spinner"></div>
                   <p>Cargando clientes...</p>
                 </td>
@@ -156,6 +157,18 @@
               class="form-control"
               required
               placeholder="Artículo"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="precio">Precio</label>
+            <input
+              type="number"
+              id="precio"
+              class="form-control"
+              step="0.01"
+              min="0"
+              placeholder="0.00"
             />
           </div>
 

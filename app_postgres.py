@@ -54,6 +54,7 @@ def init_db():
             telefono TEXT NOT NULL,
             fecha_registro DATE NOT NULL,
             articulo TEXT NOT NULL,
+            precio DECIMAL(10, 2) DEFAULT 0.00,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -100,6 +101,19 @@ def manual_init_db():
     except Exception as e:
         return jsonify({"error": f"❌ Error al inicializar: {str(e)}", "status": "error"}), 500
 
+# Endpoint para migrar base de datos (agregar columna precio)
+@app.route('/migrate-db')
+def migrate_db():
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('ALTER TABLE clientes ADD COLUMN IF NOT EXISTS precio DECIMAL(10, 2) DEFAULT 0.00;')
+        conn.commit()
+        conn.close()
+        return jsonify({"message": "✅ Migración completada: Columna precio agregada", "status": "ok"})
+    except Exception as e:
+        return jsonify({"error": f"❌ Error en migración: {str(e)}", "status": "error"}), 500
+
 # API: Obtener todos los clientes
 @app.route('/api/clientes', methods=['GET'])
 def get_clientes():
@@ -109,7 +123,7 @@ def get_clientes():
     clientes = cursor.fetchall()
     conn.close()
     
-    # Convertir dates a strings
+    # Convertir dates a strings y manejar precio
     clientes_list = []
     for cliente in clientes:
         clientes_list.append({
@@ -117,7 +131,8 @@ def get_clientes():
             'nombre': cliente['nombre'],
             'telefono': cliente['telefono'],
             'fecha_registro': str(cliente['fecha_registro']),
-            'articulo': cliente['articulo']
+            'articulo': cliente['articulo'],
+            'precio': float(cliente.get('precio', 0.00) or 0.00)
         })
     
     return jsonify(clientes_list)
@@ -139,7 +154,8 @@ def get_cliente(id):
         'nombre': cliente['nombre'],
         'telefono': cliente['telefono'],
         'fecha_registro': str(cliente['fecha_registro']),
-        'articulo': cliente['articulo']
+        'articulo': cliente['articulo'],
+        'precio': float(cliente.get('precio', 0.00) or 0.00)
     })
 
 # API: Crear un nuevo cliente
@@ -153,12 +169,13 @@ def create_cliente():
     
     # Si no se proporciona fecha, usar la actual
     fecha_registro = data.get('fecha_registro', datetime.now().strftime('%Y-%m-%d'))
+    precio = data.get('precio', 0.00)
     
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute(
-        'INSERT INTO clientes (nombre, telefono, fecha_registro, articulo) VALUES (%s, %s, %s, %s) RETURNING id',
-        (data['nombre'], data['telefono'], fecha_registro, data['articulo'])
+        'INSERT INTO clientes (nombre, telefono, fecha_registro, articulo, precio) VALUES (%s, %s, %s, %s, %s) RETURNING id',
+        (data['nombre'], data['telefono'], fecha_registro, data['articulo'], precio)
     )
     nuevo_id = cursor.fetchone()[0]
     conn.commit()
@@ -169,7 +186,8 @@ def create_cliente():
         'nombre': data['nombre'],
         'telefono': data['telefono'],
         'fecha_registro': fecha_registro,
-        'articulo': data['articulo']
+        'articulo': data['articulo'],
+        'precio': precio
     }), 201
 
 # API: Actualizar un cliente
@@ -191,10 +209,11 @@ def update_cliente(id):
     telefono = data.get('telefono', cliente['telefono'])
     fecha_registro = data.get('fecha_registro', str(cliente['fecha_registro']))
     articulo = data.get('articulo', cliente['articulo'])
+    precio = data.get('precio', cliente.get('precio', 0.00))
     
     cursor.execute(
-        'UPDATE clientes SET nombre = %s, telefono = %s, fecha_registro = %s, articulo = %s WHERE id = %s',
-        (nombre, telefono, fecha_registro, articulo, id)
+        'UPDATE clientes SET nombre = %s, telefono = %s, fecha_registro = %s, articulo = %s, precio = %s WHERE id = %s',
+        (nombre, telefono, fecha_registro, articulo, precio, id)
     )
     conn.commit()
     conn.close()
@@ -204,7 +223,8 @@ def update_cliente(id):
         'nombre': nombre,
         'telefono': telefono,
         'fecha_registro': fecha_registro,
-        'articulo': articulo
+        'articulo': articulo,
+        'precio': precio
     })
 
 # API: Eliminar un cliente
@@ -248,7 +268,8 @@ def buscar_clientes():
             'nombre': cliente['nombre'],
             'telefono': cliente['telefono'],
             'fecha_registro': str(cliente['fecha_registro']),
-            'articulo': cliente['articulo']
+            'articulo': cliente['articulo'],
+            'precio': float(cliente.get('precio', 0.00) or 0.00)
         })
     
     return jsonify(clientes_list)
@@ -270,7 +291,8 @@ def exportar_excel():
             'Nombre': cliente['nombre'],
             'Teléfono': cliente['telefono'],
             'Fecha de Registro': str(cliente['fecha_registro']),
-            'Artículo': cliente['articulo']
+            'Artículo': cliente['articulo'],
+            'Precio': cliente.get('precio', 0.00)
         })
     
     df = pd.DataFrame(data)
@@ -321,6 +343,12 @@ def importar_excel():
             nombre = str(row['Nombre']).strip()
             telefono = str(row['Teléfono']).strip()
             articulo = str(row['Artículo']).strip()
+            precio = 0.00
+            if 'Precio' in df.columns and pd.notna(row['Precio']):
+                 try:
+                     precio = float(row['Precio'])
+                 except:
+                     precio = 0.00
             
             # Usar fecha del Excel si existe, sino fecha actual
             if 'Fecha de Registro' in df.columns and pd.notna(row['Fecha de Registro']):
@@ -334,8 +362,8 @@ def importar_excel():
             # Validar que los campos no estén vacíos
             if nombre and telefono and articulo:
                 cursor.execute(
-                    'INSERT INTO clientes (nombre, telefono, fecha_registro, articulo) VALUES (%s, %s, %s, %s)',
-                    (nombre, telefono, fecha_registro, articulo)
+                    'INSERT INTO clientes (nombre, telefono, fecha_registro, articulo, precio) VALUES (%s, %s, %s, %s, %s)',
+                    (nombre, telefono, fecha_registro, articulo, precio)
                 )
                 registros_importados += 1
         

@@ -73,6 +73,7 @@ function renderizarTabla(data) {
             <td>${cliente.telefono}</td>
             <td>${formatearFecha(cliente.fecha_registro)}</td>
             <td>${cliente.articulo}</td>
+            <td>${formatearPrecio(cliente.precio)}</td>
             <td>
                 <button class="btn btn-edit" onclick="editarCliente(${cliente.id})">
                     ✏️ Editar
@@ -134,6 +135,7 @@ async function editarCliente(id) {
         document.getElementById('telefono').value = cliente.telefono;
         document.getElementById('fechaRegistro').value = cliente.fecha_registro;
         document.getElementById('articulo').value = cliente.articulo;
+        document.getElementById('precio').value = cliente.precio;
         
         document.getElementById('modalCliente').classList.add('active');
     } catch (error) {
@@ -150,7 +152,8 @@ async function guardarCliente(e) {
         nombre: document.getElementById('nombre').value.trim(),
         telefono: document.getElementById('telefono').value.trim(),
         fecha_registro: document.getElementById('fechaRegistro').value,
-        articulo: document.getElementById('articulo').value.trim()
+        articulo: document.getElementById('articulo').value.trim(),
+        precio: parseFloat(document.getElementById('precio').value) || 0.00
     };
     
     try {
@@ -320,4 +323,13 @@ function establecerFechaActual() {
 function formatearFecha(fecha) {
     const [year, month, day] = fecha.split('-');
     return `${day}/${month}/${year}`;
+}
+
+// Formatear precio para mostrar
+function formatearPrecio(precio) {
+    return new Intl.NumberFormat('es-CO', { 
+        style: 'currency', 
+        currency: 'COP',
+        minimumFractionDigits: 0
+    }).format(precio);
 }
