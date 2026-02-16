@@ -114,12 +114,27 @@ def migrate_db():
     except Exception as e:
         return jsonify({"error": f"❌ Error en migración: {str(e)}", "status": "error"}), 500
 
-# API: Obtener todos los clientes
+# API: Obtener todos los clientes (con paginación)
 @app.route('/api/clientes', methods=['GET'])
 def get_clientes():
     conn = get_db_connection()
     cursor = conn.cursor(cursor_factory=RealDictCursor)
-    cursor.execute('SELECT * FROM clientes ORDER BY id DESC')
+    
+    # Parámetros de paginación
+    page = int(request.args.get('page', 1))
+    limit = int(request.args.get('limit', 10))
+    offset = (page - 1) * limit
+    
+    # Obtener total de registros
+    cursor.execute('SELECT COUNT(*) FROM clientes')
+    total_registros = cursor.fetchone()['count']
+    total_pages = (total_registros + limit - 1) // limit
+    
+    # Obtener registros de la página actual
+    cursor.execute(
+        'SELECT * FROM clientes ORDER BY id DESC LIMIT %s OFFSET %s', 
+        (limit, offset)
+    )
     clientes = cursor.fetchall()
     conn.close()
     
@@ -135,7 +150,13 @@ def get_clientes():
             'precio': float(cliente.get('precio', 0.00) or 0.00)
         })
     
-    return jsonify(clientes_list)
+    return jsonify({
+        'data': clientes_list,
+        'page': page,
+        'limit': limit,
+        'total': total_registros,
+        'total_pages': total_pages
+    })
 
 # API: Obtener un cliente por ID
 @app.route('/api/clientes/<int:id>', methods=['GET'])

@@ -4,11 +4,14 @@ const API_URL = '/api';
 // Estado global
 let clientes = [];
 let editandoId = null;
+let currentPage = 1;
+let totalPages = 1;
+const LIMIT = 10;
 
 // Inicialización
 document.addEventListener('DOMContentLoaded', () => {
     configurarEventListeners();
-    cargarClientes();
+    cargarClientes(); // Carga pagina 1 por defecto
     establecerFechaActual();
 });
 
@@ -17,6 +20,10 @@ function configurarEventListeners() {
     // Botones de nuevo cliente
     document.getElementById('btnNuevoCliente').addEventListener('click', abrirModalNuevo);
     document.getElementById('btnNuevoClienteEmpty').addEventListener('click', abrirModalNuevo);
+    
+    // Paginación
+    document.getElementById('btnPrevPage').addEventListener('click', () => cambiarPagina(-1));
+    document.getElementById('btnNextPage').addEventListener('click', () => cambiarPagina(1));
     
     // Cerrar modal
     document.getElementById('btnCerrarModal').addEventListener('click', cerrarModal);
@@ -37,13 +44,34 @@ function configurarEventListeners() {
     document.getElementById('btnPlantilla').addEventListener('click', descargarPlantilla);
 }
 
+// Cambiar página
+function cambiarPagina(delta) {
+    const nuevaPagina = currentPage + delta;
+    if (nuevaPagina >= 1 && nuevaPagina <= totalPages) {
+        currentPage = nuevaPagina;
+        cargarClientes();
+    }
+}
+
 // Cargar clientes desde la API
 async function cargarClientes() {
     try {
-        const response = await fetch(`${API_URL}/clientes`);
+        const response = await fetch(`${API_URL}/clientes?page=${currentPage}&limit=${LIMIT}`);
         if (!response.ok) throw new Error('Error al cargar clientes');
         
-        clientes = await response.json();
+        const data = await response.json();
+        
+        // Manejar respuesta paginada o lista simple (compatibilidad)
+        if (data.data) {
+            clientes = data.data;
+            totalPages = data.total_pages;
+            currentPage = data.page;
+            actualizarControlesPaginacion();
+        } else {
+            // Fallback por si la API no devuelve paginación aún
+            clientes = data;
+        }
+
         renderizarTabla(clientes);
     } catch (error) {
         console.error('Error:', error);
@@ -51,19 +79,40 @@ async function cargarClientes() {
     }
 }
 
+function actualizarControlesPaginacion() {
+    const container = document.getElementById('paginationContainer');
+    const info = document.getElementById('paginationInfo');
+    const btnPrev = document.getElementById('btnPrevPage');
+    const btnNext = document.getElementById('btnNextPage');
+    
+    if (clientes.length === 0 && currentPage === 1) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'flex';
+    info.textContent = `Página ${currentPage} de ${totalPages}`;
+    
+    btnPrev.disabled = currentPage === 1;
+    btnNext.disabled = currentPage === totalPages;
+}
+
 // Renderizar tabla
 function renderizarTabla(data) {
     const tbody = document.getElementById('clientesBody');
     const emptyState = document.getElementById('emptyState');
     const tableContainer = document.querySelector('.table-container');
+    const paginationContainer = document.getElementById('paginationContainer');
     
     if (data.length === 0) {
         tableContainer.style.display = 'none';
+        paginationContainer.style.display = 'none'; // Ocultar si no hay nada
         emptyState.style.display = 'block';
         return;
     }
     
     tableContainer.style.display = 'block';
+    // paginationContainer.style.display = 'flex'; // Se maneja en actualizarControlesPaginacion
     emptyState.style.display = 'none';
     
     tbody.innerHTML = data.map(cliente => `

@@ -337,6 +337,25 @@ body {
   margin-bottom: 24px;
 }
 
+/* Paginación */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.pagination-info {
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.pagination-container button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* Modal */
 .modal {
   display: none;
