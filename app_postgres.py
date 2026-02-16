@@ -67,6 +67,30 @@ def init_db():
 def index():
     return render_template('index.html')
 
+# Endpoint de diagnóstico (temporal)
+@app.route('/debug-db')
+def debug_db():
+    env_vars = {
+        'POSTGRES_URL': 'Presente' if os.environ.get('POSTGRES_URL') else 'Faltante',
+        'DATABASE_URL': 'Presente' if os.environ.get('DATABASE_URL') else 'Faltante',
+        'UPLOAD_FOLDER': UPLOAD_FOLDER,
+        'UPLOAD_WRITABLE': os.access(UPLOAD_FOLDER, os.W_OK)
+    }
+    
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT 1')
+        conn.close()
+        db_status = "✅ Conexión Exitosa"
+    except Exception as e:
+        db_status = f"❌ Error: {str(e)}"
+        
+    return jsonify({
+        'environment': env_vars,
+        'database_status': db_status
+    })
+
 # API: Obtener todos los clientes
 @app.route('/api/clientes', methods=['GET'])
 def get_clientes():
