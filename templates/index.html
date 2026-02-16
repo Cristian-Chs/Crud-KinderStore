@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Registro de Clientes</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='styles.css') }}"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <header class="header">
+      <div class="container">
+        <div class="header-content">
+          <h1 class="logo">
+            <span class="logo-icon">📋</span>
+            Kinderstore Registro de Clientes y ventas
+          </h1>
+          <div class="header-actions">
+            <button class="btn btn-secondary" id="btnPlantilla">
+              📥 Descargar Plantilla
+            </button>
+            <button class="btn btn-primary" id="btnNuevoCliente">
+              ➕ Nuevo Cliente
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="container">
+        <!-- Panel de Control -->
+        <div class="control-panel">
+          <div class="search-box">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              id="searchInput"
+              placeholder="Buscar por nombre, teléfono o artículo..."
+              class="search-input"
+            />
+          </div>
+
+          <div class="excel-actions">
+            <button class="btn btn-success" id="btnExportar">
+              📤 Exportar Excel
+            </button>
+            <label for="fileImport" class="btn btn-info">
+              📁 Importar Excel
+            </label>
+            <input
+              type="file"
+              id="fileImport"
+              accept=".xlsx, .xls"
+              style="display: none"
+            />
+          </div>
+        </div>
+
+        <!-- Tabla de Clientes -->
+        <div class="table-container">
+          <table class="clientes-table" id="clientesTable">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th>Fecha de Registro</th>
+                <th>Artículo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="clientesBody">
+              <tr class="loading-row">
+                <td colspan="6">
+                  <div class="loading-spinner"></div>
+                  <p>Cargando clientes...</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Estado cuando no hay clientes -->
+        <div class="empty-state" id="emptyState" style="display: none">
+          <div class="empty-icon">📂</div>
+          <h3>No hay clientes registrados</h3>
+          <p>
+            Comienza agregando un nuevo cliente o importa desde un archivo Excel
+          </p>
+          <button class="btn btn-primary" id="btnNuevoClienteEmpty">
+            ➕ Agregar Primer Cliente
+          </button>
+        </div>
+      </div>
+    </main>
+
+    <!-- Modal: Nuevo/Editar Cliente -->
+    <div class="modal" id="modalCliente">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 id="modalTitle">Nuevo Cliente</h2>
+          <button class="btn-close" id="btnCerrarModal">&times;</button>
+        </div>
+
+        <form id="formCliente">
+          <input type="hidden" id="clienteId" />
+
+          <div class="form-group">
+            <label for="nombre">Nombre Completo *</label>
+            <input
+              type="text"
+              id="nombre"
+              class="form-control"
+              required
+              placeholder="Nombre del cliente"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="telefono">Teléfono *</label>
+            <input
+              type="tel"
+              id="telefono"
+              class="form-control"
+              required
+              placeholder="Teléfono del cliente"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="fechaRegistro">Fecha de Registro *</label>
+            <input
+              type="date"
+              id="fechaRegistro"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="articulo">Artículo *</label>
+            <input
+              type="text"
+              id="articulo"
+              class="form-control"
+              required
+              placeholder="Artículo"
+            />
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-secondary" id="btnCancelar">
+              Cancelar
+            </button>
+            <button type="submit" class="btn btn-primary" id="btnGuardar">
+              💾 Guardar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div class="toast" id="toast">
+      <span id="toastMessage"></span>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
